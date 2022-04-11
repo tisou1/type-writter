@@ -1,50 +1,88 @@
 <script setup lang="ts">
-const name = $ref('')
+import _TypeIt from 'typeit'
+import { caluctatePatch, diff } from '~/index'
+const TypeIt = _TypeIt as any
+let typeit: any
+const data = reactive({
+  input: `
+  import { diff_match_patch as DMP } from 'diff-match-patch'
+import type { Diff } from 'diff-match-patch'
 
-const router = useRouter()
-const go = () => {
-  if (name)
-    router.push(`/hi/${encodeURIComponent(name)}`)
+export interface PatchStep {
+  type: 'insert'
+  from: number
+  text: string
 }
+`,
+  output: `
+ import { diff_match_patch as DMP } from 'diff-match-patch'
+
+export interface PatchStep {
+  type: 'insert'
+  from: number
+  name: string
+}
+`,
+  result: '',
+})
+onMounted(() => {
+  start()
+})
+onUpdated(() => {
+  start()
+  // console.log('update')
+})
+
+function start() {
+  if (typeit)
+    typeit.reset()
+
+  typeit = new TypeIt('#result', {
+    speed: 100,
+    waitUntilVisible: true,
+  })
+
+  const patches = caluctatePatch(diff(data.input, data.output))
+
+  typeit
+    .type(data.input, { instant: true })
+
+  for (const patch of patches) {
+    typeit
+      .pause(800)
+    if (patch.type === 'insert') {
+      typeit
+        .move(null, { to: 'START', instant: true })
+        .move(patch.from, { instant: true })
+        .type(patch.text, { delay: 300 })
+    }
+    else {
+      typeit
+        .move(null, { to: 'START', instant: true })
+        .move(patch.from, { instant: true })
+        .delete(patch.length)
+    }
+  }
+
+  typeit.go()
+}
+
 </script>
 
 <template>
-  <div>
-    <div i-carbon-campsite text-4xl inline-block />
-    <p>
-      <a rel="noreferrer" href="https://github.com/antfu/vitesse-lite" target="_blank">
-        Vitesse Lite
-      </a>
-    </p>
-    <p>
-      <em text-sm op75>Opinionated Vite Starter Template</em>
-    </p>
-
-    <div py-4 />
-
-    <input
-      id="input"
-      v-model="name"
-      placeholder="What's your name?"
-      type="text"
-      autocomplete="false"
-      p="x-4 y-2"
-      w="250px"
-      text="center"
-      bg="transparent"
-      border="~ rounded gray-200 dark:gray-700"
-      outline="none active:none"
-      @keydown.enter="go"
-    >
-
+  <div class="text-black">
     <div>
-      <button
-        class="m-3 text-sm btn"
-        :disabled="!name"
-        @click="go"
-      >
-        Go
-      </button>
+      <pre id="result">{{ data.result }}</pre>
+    </div>
+    <div class="w-full">
+      <textarea id="input" v-model="data.input" class="w-[calc(50%-10px)] h-60vh mr-1 border border-blue-300 " />
+      <textarea id="output" v-model="data.output" class="w-[calc(50%-10px)] h-60vh border border-blue-300 " />
     </div>
   </div>
 </template>
+
+<style scoped>
+  pre{
+    height: 300px;
+  }
+</style>
