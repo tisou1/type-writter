@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import _TypeIt from 'typeit'
+import { debounce } from 'lodash'
 import { caluctatePatch, diff } from '~/index'
 const TypeIt = _TypeIt as any
 let typeit: any
@@ -28,11 +29,15 @@ export interface PatchStep {
 onMounted(() => {
   start()
 })
-onUpdated(() => {
+// 这里最好加一个防抖函数,不然高频率的更新有点问题
+onUpdated(debounce(() => {
   start()
-  // console.log('update')
-})
-
+}, 1000))
+// watch(() => [data.input, data.output], ([newInput, newOutput], [oldInput, oldOutput]) => {
+//   debounce(() => {
+//     console.log('debounce')
+//   }, 1000)
+// })
 function start() {
   if (typeit)
     typeit.reset()
@@ -70,7 +75,7 @@ function start() {
 </script>
 
 <template>
-  <div class="text-black">
+  <div class="text-black text-left">
     <div>
       <pre id="result">{{ data.result }}</pre>
     </div>
