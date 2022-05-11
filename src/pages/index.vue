@@ -77,7 +77,7 @@ function start() {
 <template>
   <div class="text-black text-left">
     <div>
-      <pre id="result">{{ data.result }}</pre>
+      <pre id="result" text-gray-200>{{ data.result }}</pre>
     </div>
     <div class="w-full">
       <textarea id="input" v-model="data.input" class="w-[calc(50%-10px)] h-60vh mr-1 border border-blue-300 " />
